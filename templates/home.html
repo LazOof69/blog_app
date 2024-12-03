@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>All Posts</h2>
+{% for post in posts %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <p class="card-text">{{ post.content }}</p>
+            <small class="text-muted">By User ID {{ post.user_id }}</small>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
