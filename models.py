@@ -1,28 +1,23 @@
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 
-# 初始化資料庫
 db = SQLAlchemy()
 
-# 使用者模型
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)  # 主鍵
-    username = db.Column(db.String(20), unique=True, nullable=False)  # 使用者名稱
-    email = db.Column(db.String(120), unique=True, nullable=False)  # 使用者 Email
-    password = db.Column(db.String(60), nullable=False)  # 加密後的密碼
-    posts = db.relationship('Post', backref='author', lazy=True)  # 與 Post 模型建立關聯
+class User(db.Model, UserMixin):  # 确保继承了 UserMixin
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
 
-    def __repr__(self):
-        return f"User('{self.username}', '{self.email}')"
+    posts = db.relationship('Post', backref='author', lazy=True)
 
-# 文章模型
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    is_public = db.Column(db.Boolean, default=True)  # 是否為公開文章
+    is_public = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    comments = db.relationship('Comment', backref='post', lazy=True)  # 與 Comment 關聯
+    comments = db.relationship('Comment', backref='post', lazy=True)
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -30,6 +25,3 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
-
-    def __repr__(self):
-        return f"Post('{self.title}')"
