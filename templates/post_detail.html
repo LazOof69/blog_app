@@ -34,7 +34,9 @@
     <div class="card mb-3">
         <div class="card-body">
             <p>{{ comment.content }}</p>
-            <small class="text-muted">By {{ post.author.username if post.author else 'Anonymous' }}</small>
+            <small class="text-muted">
+                By {{ comment.user.username if comment.user else 'Unknown User' }}
+            </small>            
         </div>
     </div>
 {% endfor %}

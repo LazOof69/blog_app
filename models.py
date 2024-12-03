@@ -25,3 +25,7 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+    # Relationship to User
+    user = db.relationship('User', backref='comments', lazy=True)
+
