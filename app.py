@@ -35,8 +35,23 @@ class Post(db.Model):
 # 路由
 @app.route('/')
 def home():
-    posts = Post.query.all()
+    if current_user.is_authenticated:
+        posts = Post.query.filter(
+            (Post.is_public == True) | (Post.user_id == current_user.id)
+        ).all()
+    else:
+        posts = Post.query.filter_by(is_public=True).all()
     return render_template('home.html', posts=posts)
+
+
+@app.route('/post/<int:post_id>')
+def post_detail(post_id):
+    post = Post.query.get_or_404(post_id)
+    if not post.is_public and post.user_id != current_user.id:
+        flash('You do not have permission to view this post.', 'danger')
+        return redirect(url_for('home'))
+    return render_template('post_detail.html', post=post)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -50,6 +65,49 @@ def register():
         flash('Account created successfully!', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
+
+
+@app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.user_id != current_user.id:
+        flash('You are not authorized to edit this post.', 'danger')
+        return redirect(url_for('home'))
+    if request.method == 'POST':
+        post.title = request.form['title']
+        post.content = request.form['content']
+        post.is_public = request.form['is_public'] == 'True'
+        db.session.commit()
+        flash('Post updated successfully!', 'success')
+    return redirect(url_for('post_detail', post_id=post.id))
+
+@app.route('/post/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.user_id != current_user.id:
+        flash('You are not authorized to delete this post.', 'danger')
+        return redirect(url_for('home'))
+    db.session.delete(post)
+    db.session.commit()
+    flash('Post deleted successfully!', 'success')
+    return redirect(url_for('home'))
+
+@app.route('/post/<int:post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+    if not post.is_public and post.user_id != current_user.id:
+        flash('You do not have permission to comment on this post.', 'danger')
+        return redirect(url_for('home'))
+    content = request.form['content']
+    comment = Comment(content=content, post_id=post_id, user_id=current_user.id)
+    db.session.add(comment)
+    db.session.commit()
+    flash('Comment added successfully!', 'success')
+    return redirect(url_for('post_detail', post_id=post_id))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -78,12 +136,14 @@ def new_post():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        post = Post(title=title, content=content, user_id=current_user.id)
+        is_public = request.form['is_public'] == 'True'
+        post = Post(title=title, content=content, is_public=is_public, user_id=current_user.id)
         db.session.add(post)
         db.session.commit()
-        flash('Post created!', 'success')
+        flash('Post created successfully!', 'success')
         return redirect(url_for('home'))
     return render_template('new_post.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

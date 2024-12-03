@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Edit Post</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" name="title" class="form-control" value="{{ post.title }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="content" class="form-label">Content</label>
+        <textarea name="content" class="form-control" rows="5" required>{{ post.content }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="is_public" class="form-label">Visibility</label>
+        <select name="is_public" class="form-control">
+            <option value="True" {% if post.is_public %}selected{% endif %}>Public</option>
+            <option value="False" {% if not post.is_public %}selected{% endif %}>Private</option>
+        </select>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+{% endblock %}
